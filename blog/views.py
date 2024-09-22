@@ -1,32 +1,13 @@
 from django.shortcuts import render
 from .models import Post
-
-posts = [
-    {
-        'author': 'John Doe',
-        'title': 'Blog 1',
-        'content': 'This is the content of blog 1',
-        'date_posted': '2020-01-01'
-    },
-    {
-        'author': 'John Doe 2',
-        'title': 'Blog 2',
-        'content': 'This is the content of blog 2',
-        'date_posted': '2020-01-01'
-    },
-    {
-        'author': 'John Doe 3',
-        'title': 'Blog 3',
-        'content': 'This is the content of blog 3',
-        'date_posted': '2020-01-01'
-    },
-    {
-        'author': 'John Doe 4',
-        'title': 'Blog 4',
-        'content': 'This is the content of blog 4',
-        'date_posted': '2020-01-01'
-    },
-]
+from django.views.generic import (
+    ListView, 
+    DetailView, 
+    CreateView, 
+    UpdateView, 
+    DeleteView
+)
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 def home(req):
     context = {
@@ -38,3 +19,38 @@ def about(req):
     return render(req, 'blog/about.html', {
         'title': 'About'
     })
+
+class BlogPostListView(ListView):
+    model = Post
+    template_name = 'blog/home.html'
+    context_object_name = 'posts'
+    ordering = ['-date_posted']
+
+class BlogPostDetailView(DetailView):
+    model = Post
+
+class BlogPostCreateView(LoginRequiredMixin, CreateView): 
+    model = Post
+    fields = ['title', 'content']
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+class BlogPostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView): 
+    model = Post
+    fields = ['title', 'content']
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def test_func(self) -> bool | None:
+        return super().test_func() and self.get_object().author == self.request.user
+    
+class BlogPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    success_url = '/'
+    
+    def test_func(self) -> bool | None:
+        return super().test_func() and self.get_object().author == self.request.user
