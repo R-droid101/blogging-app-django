@@ -4,12 +4,14 @@ from .views import (
     BlogPostDetailView, 
     BlogPostCreateView, 
     BlogPostUpdateView, 
-    BlogPostDeleteView
+    BlogPostDeleteView,
+    UserPostListView
 )
 from . import views
 
 urlpatterns = [
     path('', BlogPostListView.as_view(), name="blog-home"),
+    path('user/<str:username>', UserPostListView.as_view(), name="user-posts"),
     path('about/', views.about, name="blog-about"),
     path('blog/<int:pk>/', BlogPostDetailView.as_view(), name="blog-detail"),
     path('blog/create/', BlogPostCreateView.as_view(), name="blog-create"),
